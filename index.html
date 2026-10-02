@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0d1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AI Story Studio — Turn Ideas Into Illustrated Stories</title>
+  <meta name="description" content="AI-powered Story to Multi-Image Generator. Enter your character name, choose a setting, story tone, and art style, and generate illustrated 6-scene storyboards with consistent characters." />
+  <link rel="icon" href="assets/logo.jpg" type="image/jpeg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Animated Background -->
+  <div class="bg-animated"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="nav-logo" id="nav-logo-link">
+      <img src="assets/logo.jpg" alt="ComicCraft Logo" class="nav-logo-img" />
+      <span class="nav-logo-text">ComicCraft</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#create" id="nav-create">Create</a></li>
+      <li><a href="#how-it-works" id="nav-how">How It Works</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="btn-nav-history" id="nav-history-btn" type="button" title="View Image Generation History">
+        <span>🖼️</span> History (<span id="nav-history-badge">0</span>)
+      </button>
+
+      <!-- Auth Section -->
+      <div class="nav-auth-container" id="nav-auth-container">
+        <!-- Logged out button -->
+        <button class="btn-nav-auth" id="open-auth-btn" type="button" title="Sign In or Create Account">
+          <span class="auth-btn-icon">⚡</span>
+          <span class="auth-btn-label">Sign Up / Login</span>
+        </button>
+
+        <!-- Logged in state (hidden initially) -->
+        <div class="user-pill hidden" id="user-pill">
+          <span class="user-avatar" id="user-avatar">🦸</span>
+          <span class="user-name" id="user-display-name">Creator</span>
+          <button class="btn-logout" id="logout-btn" title="Sign Out" type="button">🚪</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Key Popover (Preserved for advanced settings) -->
+    <div class="api-popover" id="api-popover">
+      <div class="api-popover-card">
+        <h3>🔑 Gemini API Key (Optional)</h3>
+        <div class="input-wrapper">
+          <input
+            type="password"
+            id="api-key"
+            class="form-input"
+            placeholder="Paste your API key..."
+          />
+          <button type="button" class="btn-toggle-key" id="toggle-key-btn" title="Toggle visibility">👁️</button>
+        </div>
+        <p class="api-key-help">
+          Get your free key from
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio →</a>
+        </p>
+        <button class="btn btn-save-key" id="save-key-btn" type="button">✅ Save Key</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===================== HOME PAGE ===================== -->
+  <main id="home-page">
+    <section class="hero" id="create">
+      <!-- Hero Content -->
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="sparkle">✨</span>
+          AI-Powered Story & Multi-Image Generator
+        </div>
+        <h1 class="hero-title">
+          AI Story Studio<br />
+          <span class="gradient-text">Turn Ideas Into Illustrated Stories</span>
+        </h1>
+        <p class="hero-subtitle">
+          Enter a character name, select your setting, tone, and visual style.
+          Watch AI craft a 6-scene story with consistent character illustrations.
+        </p>
+      </div>
+
+      <!-- Story Studio Form Container -->
+      <div class="form-container">
+        <div class="glass-card studio-card">
+          <form id="comic-form" autocomplete="off">
+
+            <!-- 1. Main Character Name -->
+            <div class="form-group studio-group">
+              <label for="character-name" class="studio-label">
+                <span class="label-icon">🧑‍🎨</span>
+                Main Character Name
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  id="character-name"
+                  class="form-input studio-input"
+                  placeholder="e.g. Alex, Ananya, Maya, Leo..."
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- 1b. Character Gender -->
+            <div class="form-group studio-group">
+              <label class="studio-label">
+                <span class="label-icon">👤</span>
+                Character Gender
+              </label>
+              <div class="select-pills" id="gender-pills">
+                <div class="pill-option">
+                  <input type="radio" name="char-gender" id="gender-auto" value="auto" checked />
+                  <label for="gender-auto" class="pill-label">🔍 Auto-Detect</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="char-gender" id="gender-male" value="male" />
+                  <label for="gender-male" class="pill-label">👦 Boy</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="char-gender" id="gender-female" value="female" />
+                  <label for="gender-female" class="pill-label">👧 Girl</label>
+                </div>
+              </div>
+              <p class="form-field-hint">Auto-Detect reads the name — or override explicitly</p>
+            </div>
+
+            <!-- 2. Setting Selection -->
+            <div class="form-group studio-group">
+              <label class="studio-label">
+                <span class="label-icon">🌍</span>
+                Setting
+              </label>
+              <div class="select-pills" id="setting-pills">
+                <div class="pill-option">
+                  <input type="radio" name="setting" id="setting-school" value="school" />
+                  <label for="setting-school" class="pill-label">🏫 School</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="setting" id="setting-forest" value="forest" />
+                  <label for="setting-forest" class="pill-label">🌲 Forest</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="setting" id="setting-space" value="space" />
+                  <label for="setting-space" class="pill-label">🚀 Space</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="setting" id="setting-city" value="city" checked />
+                  <label for="setting-city" class="pill-label">🏙️ City</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="setting" id="setting-underwater" value="underwater" />
+                  <label for="setting-underwater" class="pill-label">🌊 Underwater</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="setting" id="setting-fantasy" value="fantasy kingdom" />
+                  <label for="setting-fantasy" class="pill-label">🏰 Fantasy Kingdom</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Story Tone Selection -->
+            <div class="form-group studio-group">
+              <label class="studio-label">
+                <span class="label-icon">🎭</span>
+                Story Tone
+              </label>
+              <div class="select-pills" id="tone-pills">
+                <div class="pill-option">
+                  <input type="radio" name="tone" id="tone-lighthearted" value="light-hearted" />
+                  <label for="tone-lighthearted" class="pill-label">😊 Light-hearted</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="tone" id="tone-dramatic" value="dramatic" checked />
+                  <label for="tone-dramatic" class="pill-label">🎬 Dramatic</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="tone" id="tone-poetic" value="poetic" />
+                  <label for="tone-poetic" class="pill-label">🌙 Poetic</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="tone" id="tone-funny" value="funny" />
+                  <label for="tone-funny" class="pill-label">😂 Funny</label>
+                </div>
+                <div class="pill-option">
+                  <input type="radio" name="tone" id="tone-mystery" value="mystery" />
+                  <label for="tone-mystery" class="pill-label">🔍 Mystery</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Illustration Style: Always Pencil Art -->
+            <div class="form-group studio-group">
+              <label class="studio-label">
+                <span class="label-icon">✏️</span>
+                Illustration Style
+              </label>
+              <div class="pencil-style-badge">
+                <span class="pencil-badge-icon">✏️</span>
+                <div class="pencil-badge-content">
+                  <div class="pencil-badge-title">Graphite Pencil Illustration</div>
+                  <div class="pencil-badge-desc">Hand-drawn monochrome · Cross-hatching · Paper grain · Sketch texture · Cinematic composition</div>
+                </div>
+                <span class="pencil-badge-lock">🔒</span>
+              </div>
+            </div>
+
+            <!-- Optional Custom Story Idea Drawer (Collapsible) -->
+            <div class="custom-prompt-accordion">
+              <button type="button" class="accordion-toggle-btn" id="custom-prompt-toggle">
+                <span>💡 Optional Custom Story Twist / Idea</span>
+                <span class="toggle-arrow">▾</span>
+              </button>
+              <div class="accordion-content hidden" id="custom-prompt-content">
+                <textarea
+                  id="story-prompt"
+                  class="form-textarea studio-textarea"
+                  placeholder="Optional custom plot hint (e.g., discovering an ancient holographic key or investigating an uncharted sector). If left empty, AI crafts the complete original storyline automatically!"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Submit & Sample Actions -->
+            <div class="form-actions-group studio-actions">
+              <button type="submit" class="btn btn-primary studio-generate-btn" id="generate-btn">
+                <span>✨</span>
+                Generate Story
+              </button>
+              <button type="button" class="btn-sample-comic" id="demo-comic-btn">
+                <span>⚡</span>
+                Instant Sample Demo
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works-section">
+      <div class="glass-card how-it-works-card">
+        <h2 class="how-it-works-title">
+          ⚡ Story to Multi-Image Workflow
+        </h2>
+        <div class="how-it-works-grid">
+          <div class="how-it-works-step">
+            <div class="step-icon">🧑‍🎨</div>
+            <h3 class="step-title step-purple">1. Consistent Character</h3>
+            <p class="step-desc">Enter your character's name. An anchor profile locks their appearance, outfit, and traits across every scene.</p>
+          </div>
+          <div class="how-it-works-step">
+            <div class="step-icon">🎬</div>
+            <h3 class="step-title step-pink">2. Coherent 6-Scene Arc</h3>
+            <p class="step-desc">Story generation builds a beginning, discovery, challenge, complication, climax, and resolution in your chosen tone.</p>
+          </div>
+          <div class="how-it-works-step">
+            <div class="step-icon">🖌️</div>
+            <h3 class="step-title step-cyan">3. Visual Consistency</h3>
+            <p class="step-desc">Every scene is painted in your chosen art style with individual regenerate, download, and storybook PDF export.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== RESULT PAGE ===================== -->
+  <section class="result-page" id="result-page">
+    <div class="result-container">
+      <div class="result-header">
+        <div class="result-badge-row">
+          <span class="story-badge">📖 AI Story Studio</span>
+          <span class="scenes-count-badge" id="scenes-count-badge">6 Scenes</span>
+        </div>
+        <h1 class="result-story-title">
+          <span class="gradient-text" id="result-title">Your Illustrated Story</span>
+        </h1>
+        <div class="result-meta" id="result-meta">
+          <!-- Filled dynamically -->
+        </div>
+
+        <!-- Sticky Result Action Bar -->
+        <div class="result-toolbar">
+          <div class="toolbar-left">
+            <button class="btn btn-toolbar" id="new-comic-btn" title="Edit inputs or create another story">
+              <span>✏️</span> Create New Story
+            </button>
+            <button class="btn btn-toolbar" id="regenerate-story-btn" title="Create completely new story with same settings">
+              <span>🔄</span> Regenerate Story
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-toolbar btn-export" id="export-pdf-btn" title="Export complete illustrated storybook as PDF">
+              <span>📄</span> Export Storybook PDF
+            </button>
+            <button class="btn btn-toolbar" id="download-all-btn" title="Download all scene images">
+              <span>💾</span> Download All Images
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Character Consistency Profile Card -->
+      <div class="character-profile-card" id="character-profile-card">
+        <div class="profile-header">
+          <div class="profile-icon">🦸</div>
+          <div>
+            <h3>Character Consistency Anchor</h3>
+            <p class="profile-subtitle">This profile is preserved across all scene prompts and illustrations to guarantee character consistency.</p>
+          </div>
+        </div>
+        <div class="profile-details-grid" id="profile-details-grid">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <!-- Story Outline / Synopsis Card -->
+      <div class="story-outline">
+        <div class="outline-card">
+          <h2>📜 Narrative Arc & Synopsis</h2>
+          <div class="outline-text" id="story-outline-text">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Story Scenes Grid -->
+      <div class="scenes-section-header">
+        <h2>🎬 Illustrated Story Scenes</h2>
+        <p>Each scene has been visually composed in your selected art style with narrative & dialogue.</p>
+      </div>
+
+      <div class="comic-grid story-scenes-grid" id="comic-grid">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== LOADING OVERLAY ===================== -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Crafting Your Comic...</div>
+    <div class="loading-step" id="loading-step">Initializing AI...</div>
+    <div class="progress-bar">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- History modal removed -->
+
+  <!-- ===================== AUTH MODAL ===================== -->
+  <div class="modal-overlay hidden" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="close-auth-modal" type="button" title="Close" aria-label="Close modal">✕</button>
+
+      <div class="auth-modal-header">
+        <div class="auth-logo-badge">🎨</div>
+        <h2 id="auth-modal-title">Welcome to ComicCraft</h2>
+        <p id="auth-modal-subtitle">Sign in or create an account to save your comics</p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="tab-signin" type="button" role="tab" aria-selected="true">Sign In</button>
+        <button class="auth-tab" id="tab-signup" type="button" role="tab" aria-selected="false">Sign Up</button>
+      </div>
+
+      <!-- Sign In Form -->
+      <form class="auth-form" id="signin-form" autocomplete="on">
+        <div class="form-group">
+          <label for="signin-email">Email or Username</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉️</span>
+            <input type="text" id="signin-email" class="form-input" placeholder="e.g. hero@comiccraft.com" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signin-password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="signin-password" class="form-input" placeholder="••••••••" required />
+            <button type="button" class="btn-toggle-key toggle-password" data-target="signin-password" title="Show password">👁️</button>
+          </div>
+        </div>
+
+        <div class="auth-options">
+          <label class="remember-me">
+            <input type="checkbox" id="signin-remember" checked />
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="forgot-pass" id="forgot-pass-link" onclick="event.preventDefault(); alert('Password reset link sent to your email!');">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn">
+          <span>🚀 Sign In</span>
+        </button>
+      </form>
+
+      <!-- Sign Up Form (hidden by default) -->
+      <form class="auth-form hidden" id="signup-form" autocomplete="on">
+        <div class="form-group">
+          <label for="signup-name">Creator Nickname</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🦸</span>
+            <input type="text" id="signup-name" class="form-input" placeholder="e.g. StanLee_99" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-email">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉️</span>
+            <input type="email" id="signup-email" class="form-input" placeholder="you@domain.com" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-password">Create Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="signup-password" class="form-input" placeholder="At least 6 characters" minlength="6" required />
+            <button type="button" class="btn-toggle-key toggle-password" data-target="signup-password" title="Show password">👁️</button>
+          </div>
+        </div>
+
+        <!-- Avatar Choice -->
+        <div class="form-group">
+          <label>Choose Hero Avatar</label>
+          <div class="avatar-picker" id="avatar-picker">
+            <button type="button" class="avatar-choice active" data-avatar="🦸">🦸</button>
+            <button type="button" class="avatar-choice" data-avatar="🦹">🦹</button>
+            <button type="button" class="avatar-choice" data-avatar="🧙">🧙</button>
+            <button type="button" class="avatar-choice" data-avatar="🥷">🥷</button>
+            <button type="button" class="avatar-choice" data-avatar="🤖">🤖</button>
+            <button type="button" class="avatar-choice" data-avatar="🐱">🐱</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn">
+          <span>✨ Create Free Account</span>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="auth-divider">
+        <span>OR</span>
+      </div>
+
+      <!-- Quick Demo Login -->
+      <div class="social-login-group">
+        <button type="button" class="btn-social-login" id="demo-login-btn">
+          <span class="social-icon">⚡</span>
+          <span>1-Click Instant Guest Demo Login</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>
+      ComicCraft &copy; 2026 — Built with ❤️ and 
+      <a href="https://ai.google.dev/" target="_blank" rel="noopener">Google Gemini AI</a>
+    </p>
+  </footer>
+
+  <!-- Libraries for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>
